@@ -1,0 +1,1 @@
+{"created_at": "2024-12-25T06:09:37.675493Z", "driver": "apgpool", "elapsed": "PT28.669749S", "github_ref_name": "main", "latency": {"min": "PT0.000317S", "median": "PT0.001403S", "max": "PT1.002184S"}, "queued": 0, "rate": 2761.0770593169864, "steps": 80180}

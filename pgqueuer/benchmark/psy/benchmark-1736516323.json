@@ -1,0 +1,1 @@
+{"created_at": "2025-01-10T13:39:15.004506Z", "driver": "psy", "elapsed": "PT30.188139S", "github_ref_name": "remove-use-of-docker-compose-populdate-in-ci", "queued": 0, "rate": 3175.0159955207237, "steps": 90930}

@@ -1,0 +1,1 @@
+{"created_at": "2024-12-13T16:07:33.534012Z", "driver": "psy", "elapsed": "PT30.169044S", "github_ref_name": "port-benchmark-to-typer", "rate": 2810.807495759651, "steps": 83080, "median_latency": 4.91503}

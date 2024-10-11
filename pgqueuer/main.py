@@ -44,6 +44,7 @@ def grouped() -> (
 def plot_rate_over_time(data: list[tuple[str, list[BenchmarkResult]]]):
     plt.figure(figsize=(10, 6))
     for driver, results in data:
+        results = [x for x in results if x.github_ref_name == "main"]
         times = [result.created_at for result in results]
         rates = [result.rate for result in results]
         plt.plot(times, rates, marker="o", label=driver)

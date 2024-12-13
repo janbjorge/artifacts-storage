@@ -1,0 +1,1 @@
+{"created_at": "2024-12-13T16:19:41.114003Z", "driver": "psy", "elapsed": "PT30.129906S", "github_ref_name": "add-latency-to-benchmark", "latency": {"min": "PT0.000748S", "median": "PT4.525867S", "max": "PT9.014095S"}, "queued": 20, "rate": 2611.1143045691247, "steps": 78550}

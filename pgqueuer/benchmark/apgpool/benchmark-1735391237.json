@@ -1,0 +1,1 @@
+{"created_at": "2024-12-28T13:07:49.494362Z", "driver": "apgpool", "elapsed": "PT28.681295S", "github_ref_name": "superviser-restart-exceptions", "latency": {"min": "PT0.000302S", "median": "PT0.001443S", "max": "PT0.053329S"}, "queued": 0, "rate": 2742.5291314000156, "steps": 78960}

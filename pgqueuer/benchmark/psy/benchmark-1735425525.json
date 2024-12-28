@@ -1,0 +1,1 @@
+{"created_at": "2024-12-28T22:39:16.636777Z", "driver": "psy", "elapsed": "PT30.129601S", "github_ref_name": "load_manager_factory-new-syntax", "latency": {"min": "PT0.000647S", "median": "PT5.610753S", "max": "PT10.894855S"}, "queued": 20, "rate": 3161.9412351402775, "steps": 88520}

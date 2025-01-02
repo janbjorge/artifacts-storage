@@ -1,0 +1,1 @@
+{"created_at": "2025-01-02T12:02:23.797917Z", "driver": "psy", "elapsed": "PT30.137908S", "github_ref_name": "main", "latency": {"min": "PT0.00075S", "median": "PT4.559523S", "max": "PT9.126941S"}, "queued": 0, "rate": 2473.1939376569517, "steps": 78170}

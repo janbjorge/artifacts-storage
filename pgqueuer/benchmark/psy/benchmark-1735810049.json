@@ -1,0 +1,1 @@
+{"created_at": "2025-01-02T09:28:01.399642Z", "driver": "psy", "elapsed": "PT30.160352S", "github_ref_name": "use-official-postgres-image", "latency": {"min": "PT0.000447S", "median": "PT5.008071S", "max": "PT9.967974S"}, "queued": 10, "rate": 2840.9889528160043, "steps": 82900}

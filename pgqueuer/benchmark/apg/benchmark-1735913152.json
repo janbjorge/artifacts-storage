@@ -1,0 +1,1 @@
+{"created_at": "2025-01-03T14:06:23.477701Z", "driver": "apg", "elapsed": "PT29.8506S", "github_ref_name": "minor-type-annotations-cleanups", "latency": {"min": "PT0.000209S", "median": "PT0.001564S", "max": "PT1.018789S"}, "queued": 33140, "rate": 3418.402183369094, "steps": 119920}

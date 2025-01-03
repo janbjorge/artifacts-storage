@@ -1,0 +1,1 @@
+{"created_at": "2025-01-03T17:53:30.040829Z", "driver": "psy", "elapsed": "PT30.175535S", "github_ref_name": "supervisor-lifespans", "latency": {"min": "PT0.000962S", "median": "PT5.26027S", "max": "PT10.442558S"}, "queued": 0, "rate": 2727.394740545791, "steps": 86820}

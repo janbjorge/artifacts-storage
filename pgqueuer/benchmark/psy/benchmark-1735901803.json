@@ -1,0 +1,1 @@
+{"created_at": "2025-01-03T10:57:15.603875Z", "driver": "psy", "elapsed": "PT30.396139S", "github_ref_name": "use-uvloop", "latency": {"min": "PT0.001161S", "median": "PT4.947651S", "max": "PT9.895323S"}, "queued": 80, "rate": 2610.589080925266, "steps": 82880}

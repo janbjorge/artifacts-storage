@@ -1,0 +1,34 @@
+name: pepy pgqueuer
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  pgqueuer-pepy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.ARTIFACTS_STORAGE_PAT }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Fetch pgqueuer pepy
+        run: PEPY_API_KEY=${{ secrets.PEPY_API_KEY }} uv run pgqueuer/pepy.py > "pgqueuer/pepy/$(date +%s).json"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'Mr. Scraper'
+          git config --global user.email 'Yeye@users.noreply.github.com'
+          git add .
+          git commit -am "Automated scrape"
+          git push

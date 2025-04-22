@@ -1,19 +1,51 @@
 from __future__ import annotations
 
 from itertools import groupby
+from datetime import datetime
 from pathlib import Path
 from typing import Generator
+from statistics import median
+from collections import defaultdict
 
-from models import BenchmarkResult
+from models import BenchmarkResult, PackageStats
 
 
-def loader() -> Generator[tuple[Path, BenchmarkResult], None, None]:
+def benchmark_loader() -> Generator[tuple[Path, BenchmarkResult], None, None]:
     for file in Path("pgqueuer/benchmark").rglob("*.json"):
         with file.open() as f:
             yield (
                 file,
                 BenchmarkResult.model_validate_json(f.read()),
             )
+
+
+def pepy_loader() -> Generator[tuple[Path, PackageStats], None, None]:
+    for file in Path("pgqueuer/pepy").rglob("*.json"):
+        with file.open() as f:
+            yield (
+                file,
+                PackageStats.model_validate_json(f.read()),
+            )
+
+
+def merged_pepy() -> PackageStats:
+    downloads = defaultdict[datetime, dict[str, list[int]]](
+        lambda: defaultdict[str, list[int]](list)
+    )
+    for _, ps in pepy_loader():
+        for when, v_dl in ps.downloads.items():
+            for v, dl in v_dl.items():
+                downloads[when][v].append(dl)
+
+    return PackageStats(
+        total_downloads=-1,
+        id="pgqueuer",
+        versions=list(set(v for x in downloads.values() for v in x.keys())),
+        downloads={
+            when: {v: median(dl) for v, dl in dls.items()}
+            for when, dls in downloads.items()
+        },
+    )
 
 
 def grouped_by_driver(
@@ -25,7 +57,7 @@ def grouped_by_driver(
 ]:
     for driver, group in groupby(
         sorted(
-            [x for _, x in loader() if x.github_ref_name == github_ref_name],
+            [x for _, x in benchmark_loader() if x.github_ref_name == github_ref_name],
             key=lambda x: x.driver,
         ),
         key=lambda x: x.driver,

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from utils import loader
+from utils import benchmark_loader
 
 
 def main() -> None:
-    for file, data in loader():
+    for file, data in benchmark_loader():
         if data.github_ref_name != "main":
             file.unlink()
             print(file)

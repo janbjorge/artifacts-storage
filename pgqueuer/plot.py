@@ -115,7 +115,7 @@ def plot_downloads(data: PackageStats) -> None:
             go.Scatter(
                 x=dates,
                 y=[downloads[d][version] for d in dates],
-                mode="lines+markers",
+                mode="lines",
                 name=f"v{version}",
             ),
             row=1,
@@ -126,7 +126,7 @@ def plot_downloads(data: PackageStats) -> None:
         go.Scatter(
             x=list(accumulated.keys()),
             y=list(accumulated.values()),
-            mode="lines+markers",
+            mode="lines",
             name="Accumulated",
         ),
         row=1,

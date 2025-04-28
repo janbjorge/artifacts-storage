@@ -8,6 +8,7 @@
 # ///
 from __future__ import annotations
 
+from itertools import accumulate
 import os
 import re
 from collections import Counter, defaultdict
@@ -78,6 +79,7 @@ def plot_downloads(data: PackageStats) -> None:
     downloads: defaultdict[datetime, defaultdict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
+
     for date, vers_counts in data.downloads.items():
         for version, count in vers_counts.items():
             if mv := re.match(r"^\d+\.\d+", version):
@@ -88,6 +90,10 @@ def plot_downloads(data: PackageStats) -> None:
         accumulated[date] = sum(downloads[date].values()) + accumulated.get(
             date - timedelta(days=1), 0
         )
+
+    adjusted_downloads_offset = data.total_downloads - max(accumulated.values())
+    for date, acc in accumulated.items():
+        accumulated[date] += adjusted_downloads_offset
 
     totals = Counter[str]()
     for vers_counts in downloads.values():

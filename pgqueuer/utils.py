@@ -38,11 +38,11 @@ def merged_pepy() -> PackageStats:
                 downloads[when][v].append(dl)
 
     return PackageStats(
-        total_downloads=-1,
+        total_downloads=max(x.total_downloads for _, x in pepy_loader()),
         id="pgqueuer",
         versions=list(set(v for x in downloads.values() for v in x.keys())),
         downloads={
-            when: {v: median(dl) for v, dl in dls.items()}
+            when: {v: round(median(dl)) for v, dl in dls.items()}
             for when, dls in downloads.items()
         },
     )

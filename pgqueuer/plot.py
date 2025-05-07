@@ -86,10 +86,10 @@ def plot_downloads(data: PackageStats) -> None:
                 downloads[date][mv.group(0)] += count
 
     accumulated = defaultdict[datetime, int](int)
+    tally = 0
     for date in sorted(downloads.keys()):
-        accumulated[date] = sum(downloads[date].values()) + accumulated.get(
-            date - timedelta(days=1), 0
-        )
+        tally += sum(downloads[date].values())
+        accumulated[date] = tally
 
     adjusted_downloads_offset = data.total_downloads - max(accumulated.values())
     for date, acc in accumulated.items():

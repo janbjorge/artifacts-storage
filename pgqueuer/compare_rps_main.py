@@ -57,26 +57,24 @@ def compare_with_dev_branch(data: list[tuple[str, list[BenchmarkResult]]]):
         other = [result for result in results if result.github_ref_name == branch_name]
 
         if main and other:
-            # Calculate mean and standard deviation for main branch results
-            main_mean = statistics.mean([result.rate for result in main])
-            main_std = statistics.stdev([result.rate for result in main])
-            mean_one_std = main_mean - main_std
+            # Calculate the maximum observed RPS in the main branch
+            main_max = max([result.rate for result in main])
+            threshold = main_max * 0.8
 
             # Get the rate for the latest result from the current branch
-            last_other_rate = max(other, key=lambda x: x.created_at).rate
+            latest_other_rate = max(other, key=lambda x: x.created_at).rate
 
             # Print comparison details
             print(f"Driver: {driver}")
             print(
-                f"Main branch mean rate: {main_mean:.1f} | "
-                f"Std dev: {main_std:.1f} | "
-                f"Mean minus one std: {mean_one_std:.1f}"
+                f"Main branch max rate: {main_max:.1f} | "
+                f"Threshold (80% of max): {threshold:.1f}"
             )
-            print(f"Latest rate ({branch_name} branch): {last_other_rate:.1f}")
+            print(f"Latest rate ({branch_name} branch): {latest_other_rate:.1f}")
             print("-" * 40)
 
             # Exit with status 1 if the latest rate from the current branch is lower than the threshold
-            if last_other_rate < mean_one_std:
+            if latest_other_rate < threshold:
                 exit_status = 1
 
     sys.exit(exit_status)

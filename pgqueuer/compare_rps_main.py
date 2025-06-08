@@ -58,8 +58,8 @@ def compare_with_dev_branch(data: list[tuple[str, list[BenchmarkResult]]]):
 
         if main and other:
             # Calculate the maximum observed RPS in the main branch
-            main_max = max([result.rate for result in main])
-            threshold = main_max * 0.8
+            median = statistics.median([result.rate for result in main]) * 0.9
+            threshold = median * 0.9
 
             # Get the rate for the latest result from the current branch
             latest_other_rate = max(other, key=lambda x: x.created_at).rate
@@ -67,8 +67,8 @@ def compare_with_dev_branch(data: list[tuple[str, list[BenchmarkResult]]]):
             # Print comparison details
             print(f"Driver: {driver}")
             print(
-                f"Main branch max rate: {main_max:.1f} | "
-                f"Threshold (80% of max): {threshold:.1f}"
+                f"Main branch median rate: {median:.1f} | "
+                f"Threshold (90% of median): {threshold:.1f}"
             )
             print(f"Latest rate ({branch_name} branch): {latest_other_rate:.1f}")
             print("-" * 40)

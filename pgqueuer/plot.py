@@ -1,52 +1,41 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = [
-#     "plotly",
-#     "pydantic",
-#     "httpx",
-# ]
-# ///
 from __future__ import annotations
 
-from itertools import accumulate
-import os
 import re
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import plotly.graph_objects as go
-import httpx
 import plotly.subplots as sp
 from plotly.subplots import make_subplots
-from utils import grouped_by_driver, median_filter, merged_pepy
+from utils import grouped_by_driver_strategy, median_filter, merged_pepy
 from models import PackageStats
 
 
 def plot_rate_over_time():
-    data = grouped_by_driver()
-    fig = make_subplots(
-        rows=2,
-        cols=1,
-        subplot_titles=(
-            "Benchmark Rate Over Time by Driver",
-            "Benchmark Rate Over Time by Driver (Median Filter)",
-        ),
-    )
+    data = grouped_by_driver_strategy()
+    fig = make_subplots(rows=4, cols=1)
 
-    for driver, results in data:
-        times = [x.created_at for x in results if x.github_ref_name == "main"]
-        rates = [x.rate for x in results if x.github_ref_name == "main"]
+    for (driver, strategy), results in data:
+        times = [
+            x.created_at
+            for x in results
+            if x.github_ref_name == "main" and x.strategy == strategy
+        ]
+        rates = [
+            x.rate
+            for x in results
+            if x.github_ref_name == "main" and x.strategy == strategy
+        ]
 
         fig.add_trace(
             go.Scatter(
                 x=times,
                 y=rates,
                 mode="lines",
-                name=f"{driver} (Raw)",
-                legendgroup=f"{driver}_raw",
-                showlegend=True,
+                name=f"{driver} {strategy} (Raw)",
+                showlegend=False,
             ),
-            row=1,
+            row=1 if strategy == "throughput" else 3,
             col=1,
         )
 
@@ -55,19 +44,16 @@ def plot_rate_over_time():
                 x=times,
                 y=list(median_filter(rates, 21)),
                 mode="lines",
-                name=f"{driver} (Filtered)",
-                legendgroup=f"{driver}_filtered",
-                showlegend=True,
+                name=f"{driver} {strategy} (Filtered)",
+                showlegend=False,
             ),
-            row=2,
+            row=2 if strategy == "throughput" else 4,
             col=1,
         )
 
     fig.update_layout(
-        height=800,
+        height=1200,
         title="Benchmark Rate Over Time",
-        xaxis_title="Timestamp",
-        yaxis_title="Rate",
         template="plotly_white",
     )
 

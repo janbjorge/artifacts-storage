@@ -48,22 +48,22 @@ def merged_pepy() -> PackageStats:
     )
 
 
-def grouped_by_driver(
+def grouped_by_driver_strategy(
     github_ref_name: str = "main",
 ) -> Generator[
-    tuple[str, list[BenchmarkResult]],
+    tuple[tuple[str, str], list[BenchmarkResult]],
     None,
     None,
 ]:
-    for driver, group in groupby(
+    for driver_strategy, group in groupby(
         sorted(
             [x for _, x in benchmark_loader() if x.github_ref_name == github_ref_name],
-            key=lambda x: x.driver,
+            key=lambda x: (x.driver, x.strategy),
         ),
-        key=lambda x: x.driver,
+        key=lambda x: (x.driver, x.strategy),
     ):
         yield (
-            driver,
+            driver_strategy,
             sorted(group, key=lambda x: x.created_at),
         )
 

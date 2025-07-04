@@ -8,6 +8,7 @@ from pydantic import AwareDatetime, BaseModel, Field
 
 class BenchmarkResult(BaseModel):
     created_at: AwareDatetime
+    strategy: Literal["drain", "throughput"] = "throughput"
     driver: Literal["apg", "apgpool", "psy"]
     elapsed: timedelta
     github_ref_name: str

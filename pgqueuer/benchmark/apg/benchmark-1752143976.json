@@ -1,0 +1,1 @@
+{"created_at": "2025-07-10T10:39:47.125439Z", "driver": "apg", "elapsed": "PT9.255352S", "strategy": "drain", "github_ref_name": "misc/remove-pytest-asyncio-mark", "queued": 0, "rate": 5402.279675586623, "steps": 50000}

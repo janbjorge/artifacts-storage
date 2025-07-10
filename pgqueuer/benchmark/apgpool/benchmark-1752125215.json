@@ -1,0 +1,1 @@
+{"created_at": "2025-07-10T05:27:25.799722Z", "driver": "apgpool", "elapsed": "PT28.992089S", "strategy": "throughput", "github_ref_name": "bug/issue_430", "queued": 18, "rate": 3266.8221973166724, "steps": 94712}

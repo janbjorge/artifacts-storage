@@ -1,0 +1,1 @@
+{"created_at": "2025-07-10T17:53:17.600608Z", "driver": "apgpool", "elapsed": "PT15.552942S", "strategy": "drain", "github_ref_name": "codex/add-optional-dependency-for-sentry-queue-support", "queued": 0, "rate": 3214.825850954758, "steps": 50000}

@@ -1,1 +1,0 @@
-{"created_at": "2025-04-15T19:33:00.765914Z", "driver": "apgpool", "elapsed": "PT28.849781S", "github_ref_name": "misc/speed-up-tests-only-clear-db-if-db-fixture-used", "queued": 9, "rate": 2881.1657385584804, "steps": 83121}

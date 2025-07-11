@@ -1,1 +1,0 @@
-{"created_at": "2025-04-18T13:01:04.356820Z", "driver": "psy", "elapsed": "PT30.054866S", "github_ref_name": "bugfix/psycopg-use-transaction", "queued": 9, "rate": 2341.7505592886064, "steps": 70381}

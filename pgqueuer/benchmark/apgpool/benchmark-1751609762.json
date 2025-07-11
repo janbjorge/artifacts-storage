@@ -1,1 +1,0 @@
-{"created_at": "2025-07-04T06:16:33.086866Z", "driver": "apgpool", "elapsed": "PT29.043688S", "strategy": "throughput", "github_ref_name": "codex/add-headers-column-to-queue_table", "queued": 19, "rate": 3330.534352181749, "steps": 96731}

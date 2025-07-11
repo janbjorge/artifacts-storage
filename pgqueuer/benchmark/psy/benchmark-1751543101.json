@@ -1,1 +1,0 @@
-{"created_at": "2025-07-03T11:45:31.851966Z", "driver": "psy", "elapsed": "PT30.179279S", "strategy": "throughput", "github_ref_name": "codex/add-drain-benchmark-strategy", "queued": 19, "rate": 3257.2348376382847, "steps": 98301}

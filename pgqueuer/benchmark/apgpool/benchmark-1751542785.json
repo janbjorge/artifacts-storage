@@ -1,1 +1,0 @@
-{"created_at": "2025-07-03T11:40:16.328805Z", "driver": "apgpool", "elapsed": "PT29.049181S", "strategy": "throughput", "github_ref_name": "codex/investigate-trigger-behavior-on-pgqueuer-table", "queued": 18, "rate": 3164.3576643408123, "steps": 91922}

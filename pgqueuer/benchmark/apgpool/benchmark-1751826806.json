@@ -1,1 +1,0 @@
-{"created_at": "2025-07-06T18:33:57.689254Z", "driver": "apgpool", "elapsed": "PT29.031621S", "strategy": "throughput", "github_ref_name": "add-headers", "queued": 18, "rate": 3259.2737974080133, "steps": 94622}

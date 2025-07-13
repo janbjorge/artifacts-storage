@@ -1,0 +1,1 @@
+{"created_at": "2025-07-13T09:55:12.726048Z", "driver": "apgpool", "elapsed": "PT28.99033S", "strategy": "throughput", "github_ref_name": "sentry-integration", "queued": 9, "rate": 428.7981617552573, "steps": 12431}

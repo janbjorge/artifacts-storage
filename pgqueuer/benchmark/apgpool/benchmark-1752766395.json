@@ -1,0 +1,1 @@
+{"created_at": "2025-07-17T15:33:46.680998Z", "driver": "apgpool", "elapsed": "PT29.069871S", "strategy": "throughput", "github_ref_name": "add-logfire-tracer", "queued": 18, "rate": 3218.1772884458796, "steps": 93552}

@@ -1,1 +1,1 @@
-{"created_at": "2025-07-18T08:15:30.544423Z", "driver": "psy", "elapsed": "PT12.946019S", "strategy": "drain", "github_ref_name": "refactor/queue-management-updates", "queued": 0, "rate": 3862.1911492637237, "steps": 50000}
+{"created_at": "2025-07-18T08:15:46.800981Z", "driver": "psy", "elapsed": "PT30.179438S", "strategy": "throughput", "github_ref_name": "refactor/queue-management-updates", "queued": 9, "rate": 2977.557092350873, "steps": 89861}

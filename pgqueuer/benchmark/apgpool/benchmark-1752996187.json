@@ -1,0 +1,1 @@
+{"created_at": "2025-07-20T07:23:22.505235Z", "driver": "apgpool", "elapsed": "PT12.695751S", "strategy": "drain", "github_ref_name": "codex/resolve-issue-#388-in-pgqueuer", "queued": 0, "rate": 3938.3255074867175, "steps": 50000}

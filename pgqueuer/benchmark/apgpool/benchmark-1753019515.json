@@ -1,0 +1,1 @@
+{"created_at": "2025-07-20T13:52:26.681305Z", "driver": "apgpool", "elapsed": "PT29.051272S", "strategy": "throughput", "github_ref_name": "ms8w9f-codex/update-ci-test-to-include-uninstall-check", "queued": 27, "rate": 3271.904883081203, "steps": 95053}

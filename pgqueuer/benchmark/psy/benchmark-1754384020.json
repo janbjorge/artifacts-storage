@@ -1,0 +1,1 @@
+{"created_at": "2025-08-05T08:53:57.504187Z", "driver": "psy", "elapsed": "PT15.441493S", "strategy": "drain", "github_ref_name": "only-upload-if-pat-defined", "queued": 0, "rate": 3238.028861587413, "steps": 50000}

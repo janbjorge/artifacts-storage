@@ -1,0 +1,1 @@
+{"created_at": "2025-10-09T17:04:39.360238Z", "driver": "psy", "elapsed": "PT30.139183S", "strategy": "throughput", "github_ref_name": "fix-validate-benchmark-pydantic-issue", "queued": 9, "rate": 3068.1322912824676, "steps": 92471}

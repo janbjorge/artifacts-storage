@@ -1,0 +1,1 @@
+{"created_at": "2025-10-18T13:11:43.927833Z", "driver": "apgpool", "elapsed": "PT29.004548S", "strategy": "throughput", "github_ref_name": "feat/libpq-envs-conftest", "queued": 9, "rate": 3312.6184127672627, "steps": 96081}

@@ -1,1 +1,1 @@
-{"created_at": "2025-10-18T13:07:13.365231Z", "driver": "apgpool", "elapsed": "PT12.598539S", "strategy": "drain", "github_ref_name": "feat/libpq-envs-conftest", "queued": 0, "rate": 3968.7141501089927, "steps": 50000}
+{"created_at": "2025-10-18T13:07:29.788985Z", "driver": "apgpool", "elapsed": "PT29.056444S", "strategy": "throughput", "github_ref_name": "feat/libpq-envs-conftest", "queued": 27, "rate": 3200.081889754114, "steps": 92983}

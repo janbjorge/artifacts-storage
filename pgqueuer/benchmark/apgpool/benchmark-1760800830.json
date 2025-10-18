@@ -1,0 +1,1 @@
+{"created_at": "2025-10-18T15:20:43.407872Z", "driver": "apgpool", "elapsed": "PT11.018258S", "strategy": "drain", "github_ref_name": "chore/improve-is_async_callable-tests", "queued": 0, "rate": 4537.922419315286, "steps": 50000}

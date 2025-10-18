@@ -1,0 +1,1 @@
+{"created_at": "2025-10-18T18:17:37.138437Z", "driver": "apgpool", "elapsed": "PT11.111784S", "strategy": "drain", "github_ref_name": "fix-retry-reclaim", "queued": 0, "rate": 4499.727496502812, "steps": 50000}

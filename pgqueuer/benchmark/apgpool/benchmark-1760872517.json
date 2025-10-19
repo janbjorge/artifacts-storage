@@ -1,1 +1,1 @@
-{"created_at": "2025-10-19T11:15:31.646754Z", "driver": "apgpool", "elapsed": "PT11.592878S", "strategy": "drain", "github_ref_name": "feature/context-shutdown", "queued": 0, "rate": 4312.992856476191, "steps": 50000}
+{"created_at": "2025-10-19T11:15:48.368693Z", "driver": "apgpool", "elapsed": "PT29.009794S", "strategy": "throughput", "github_ref_name": "feature/context-shutdown", "queued": 9, "rate": 3077.960549375216, "steps": 89291}

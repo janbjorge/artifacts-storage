@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T20:45:19.387242Z", "driver": "psy", "elapsed": "PT30.086489S", "strategy": "throughput", "github_ref_name": "codex/research-common-issues-with-pgqueuer", "queued": 9, "rate": 2913.301076931416, "steps": 87651}

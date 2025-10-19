@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T11:15:24.946475Z", "driver": "apg", "elapsed": "PT8.304501S", "strategy": "drain", "github_ref_name": "feature/context-shutdown", "queued": 0, "rate": 6020.831353985026, "steps": 50000}

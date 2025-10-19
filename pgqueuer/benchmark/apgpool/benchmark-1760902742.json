@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T19:39:33.705809Z", "driver": "apgpool", "elapsed": "PT29.033123S", "strategy": "throughput", "github_ref_name": "revert-480-feature/context-shutdown", "queued": 19, "rate": 3215.672026765836, "steps": 93361}

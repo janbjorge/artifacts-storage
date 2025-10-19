@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T20:01:21.725754Z", "driver": "psy", "elapsed": "PT30.151749S", "strategy": "throughput", "github_ref_name": "chore/remove-shutdown-manual-propagation", "queued": 19, "rate": 2726.906498344953, "steps": 82221}

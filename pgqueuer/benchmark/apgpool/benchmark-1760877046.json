@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T12:31:00.105947Z", "driver": "apgpool", "elapsed": "PT11.464336S", "strategy": "drain", "github_ref_name": "enable-pytest-xdist-ci", "queued": 0, "rate": 4361.35158634569, "steps": 50000}

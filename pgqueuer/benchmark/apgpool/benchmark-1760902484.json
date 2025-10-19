@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T19:35:00.192721Z", "driver": "apgpool", "elapsed": "PT13.214499S", "strategy": "drain", "github_ref_name": "chore/remove-shutdown-manual-propagation", "queued": 0, "rate": 3783.722712453949, "steps": 50000}

@@ -1,0 +1,1 @@
+{"created_at": "2025-10-19T08:58:38.381968Z", "driver": "psy", "elapsed": "PT17.039758S", "strategy": "drain", "github_ref_name": "copilot/allow-requeueing-exception-jobs", "queued": 0, "rate": 2934.3139732383524, "steps": 50000}

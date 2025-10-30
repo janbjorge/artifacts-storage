@@ -1,0 +1,1 @@
+{"created_at": "2025-10-30T08:48:52.276189Z", "driver": "apgpool", "elapsed": "PT11.348432S", "strategy": "drain", "github_ref_name": "classmethods-connection-initialization-queries", "queued": 0, "rate": 4405.895017038477, "steps": 50000}

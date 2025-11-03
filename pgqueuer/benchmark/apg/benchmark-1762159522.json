@@ -1,0 +1,1 @@
+{"created_at": "2025-11-03T08:45:53.264678Z", "driver": "apg", "elapsed": "PT29.888164S", "strategy": "throughput", "github_ref_name": "feature/postgrest-rpc-integration", "queued": 65, "rate": 4964.6743033262765, "steps": 148385}

@@ -1,0 +1,1 @@
+{"created_at": "2025-11-04T21:27:43.184768Z", "driver": "apgpool", "elapsed": "PT13.394804S", "strategy": "drain", "github_ref_name": "feature/postgrest-rpc-integration", "queued": 0, "rate": 3732.7907149667885, "steps": 50000}

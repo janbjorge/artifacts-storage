@@ -1,0 +1,1 @@
+{"created_at": "2025-11-16T20:21:37.062670Z", "driver": "psy", "elapsed": "PT30.172764S", "strategy": "throughput", "github_ref_name": "migrations-cli-upgrade", "queued": 9, "rate": 2946.0675135611355, "steps": 88891}

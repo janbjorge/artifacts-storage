@@ -1,0 +1,1 @@
+{"created_at": "2025-12-14T20:25:38.772332Z", "driver": "apgpool", "elapsed": "PT29.022018S", "strategy": "throughput", "github_ref_name": "factory-call-cycle", "queued": 18, "rate": 3338.5687013083725, "steps": 96892}

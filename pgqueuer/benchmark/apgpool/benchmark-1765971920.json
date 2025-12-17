@@ -1,0 +1,1 @@
+{"created_at": "2025-12-17T11:45:36.802715Z", "driver": "apgpool", "elapsed": "PT13.847179S", "strategy": "drain", "github_ref_name": "fix/concurrent-refresh-waiters", "queued": 0, "rate": 3610.8437682505582, "steps": 50000}

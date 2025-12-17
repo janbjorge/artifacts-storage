@@ -1,0 +1,1 @@
+{"created_at": "2025-12-17T21:42:35.378298Z", "driver": "psy", "elapsed": "PT30.099278S", "strategy": "throughput", "github_ref_name": "fix/concurrent-refresh-waiters", "queued": 9, "rate": 2716.3774087071793, "steps": 81761}

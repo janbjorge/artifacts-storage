@@ -1,0 +1,1 @@
+{"created_at": "2025-12-25T22:44:01.014916Z", "driver": "apgpool", "elapsed": "PT13.424548S", "strategy": "drain", "github_ref_name": "feature/prometheus-metrics-integration", "queued": 0, "rate": 3724.520184962652, "steps": 50000}

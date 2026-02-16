@@ -1,0 +1,1 @@
+{"created_at": "2026-02-16T19:08:46.315642Z", "driver": "apgpool", "elapsed": "PT29.026681S", "strategy": "throughput", "github_ref_name": "docs/rewrite-readme-comprehensive", "queued": 27, "rate": 3119.647089901549, "steps": 90553}

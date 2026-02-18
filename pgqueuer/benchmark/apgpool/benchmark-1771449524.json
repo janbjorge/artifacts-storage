@@ -1,0 +1,1 @@
+{"created_at": "2026-02-18T21:19:15.082653Z", "driver": "apgpool", "elapsed": "PT29.020141S", "strategy": "throughput", "github_ref_name": "feat/inmemory-repository", "queued": 18, "rate": 3680.6161465905316, "steps": 106812}

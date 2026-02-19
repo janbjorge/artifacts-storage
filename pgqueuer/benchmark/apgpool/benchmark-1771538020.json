@@ -1,0 +1,1 @@
+{"created_at": "2026-02-19T21:54:11.593146Z", "driver": "apgpool", "elapsed": "PT29.034326S", "strategy": "throughput", "github_ref_name": "feat/inmemory-adapter", "queued": 9, "rate": 3373.283049240348, "steps": 97941}

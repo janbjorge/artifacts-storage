@@ -1,0 +1,1 @@
+{"created_at": "2026-02-19T16:54:58.407576Z", "driver": "psy", "elapsed": "PT13.600651S", "strategy": "drain", "github_ref_name": "fix/benchmark-hang-timeout", "queued": 0, "rate": 3676.294612662291, "steps": 50000}

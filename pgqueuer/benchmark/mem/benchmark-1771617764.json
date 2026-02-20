@@ -1,0 +1,1 @@
+{"created_at": "2026-02-20T20:03:15.478304Z", "driver": "mem", "elapsed": "PT30.000164S", "strategy": "throughput", "github_ref_name": "feat/inmemory-adapter", "queued": 19, "rate": 9626.314032554194, "steps": 288791}

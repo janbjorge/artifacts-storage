@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, Field
@@ -9,7 +9,7 @@ from pydantic import AwareDatetime, BaseModel, Field
 class BenchmarkResult(BaseModel):
     created_at: AwareDatetime
     strategy: Literal["drain", "throughput"] = "throughput"
-    driver: Literal["apg", "apgpool", "psy"]
+    driver: Literal["apg", "apgpool", "psy", "mem"]
     elapsed: timedelta
     github_ref_name: str
     rate: float

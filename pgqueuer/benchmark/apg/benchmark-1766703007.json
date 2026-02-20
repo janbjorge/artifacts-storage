@@ -1,1 +1,0 @@
-{"created_at": "2025-12-25T22:50:38.114668Z", "driver": "apg", "elapsed": "PT29.886816S", "strategy": "throughput", "github_ref_name": "feature/prometheus-metrics-integration", "queued": 27, "rate": 5148.1897116441705, "steps": 153863}

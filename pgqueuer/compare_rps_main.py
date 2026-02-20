@@ -13,7 +13,7 @@ from pydantic import AwareDatetime, BaseModel
 
 class BenchmarkResult(BaseModel):
     created_at: AwareDatetime
-    driver: Literal["apg", "apgpool", "psy"]
+    driver: Literal["apg", "apgpool", "psy", "mem"]
     elapsed: timedelta
     github_ref_name: str
     rate: float

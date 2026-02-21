@@ -1,0 +1,1 @@
+{"created_at": "2026-02-21T12:16:43.261410Z", "driver": "psy", "elapsed": "PT30.113488S", "strategy": "throughput", "github_ref_name": "docs/sphinx-to-mkdocs-migration", "queued": 0, "rate": 2785.4628058551734, "steps": 83880}

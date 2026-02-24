@@ -1,0 +1,1 @@
+{"created_at": "2026-02-24T08:18:43.608677Z", "driver": "psy", "elapsed": "PT15.82538S", "strategy": "drain", "github_ref_name": "fix/issue-536-scheduler-race-condition", "queued": 0, "rate": 3159.4817944340043, "steps": 50000}

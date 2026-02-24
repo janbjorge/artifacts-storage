@@ -1,0 +1,1 @@
+{"created_at": "2026-02-24T08:19:25.853661Z", "driver": "mem", "elapsed": "PT1M1.117778S", "strategy": "drain", "github_ref_name": "fix/issue-536-scheduler-race-condition", "queued": 0, "rate": 818.0925687448912, "steps": 50000}

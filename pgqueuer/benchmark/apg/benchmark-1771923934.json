@@ -1,0 +1,1 @@
+{"created_at": "2026-02-24T09:05:43.116509Z", "driver": "apg", "elapsed": "PT7.014417S", "strategy": "drain", "github_ref_name": "fix/issue-536-scheduler-race-condition", "queued": 0, "rate": 7128.176154910665, "steps": 50000}

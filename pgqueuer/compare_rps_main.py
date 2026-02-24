@@ -8,6 +8,13 @@ from itertools import groupby
 from models import BenchmarkResult
 from utils import benchmark_loader
 
+# ANSI color codes for terminal output
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
+
 
 def compare_with_dev_branch() -> None:
     """
@@ -36,7 +43,13 @@ def compare_with_dev_branch() -> None:
             threshold = median * 0.9
             latest_other_rate = max(other, key=lambda x: x.created_at).rate
 
-            print(f"Driver: {driver} ({strategy})")
+            # Determine if check passed or failed
+            check_passed = latest_other_rate >= threshold
+            status_indicator = (
+                f"{GREEN}✓ PASS{RESET}" if check_passed else f"{RED}✗ FAIL{RESET}"
+            )
+
+            print(f"{BOLD}Driver: {driver} ({strategy}){RESET} {status_indicator}")
             print(
                 f"Main branch median rate: {median:.1f} | "
                 f"Threshold (90% of median): {threshold:.1f}"

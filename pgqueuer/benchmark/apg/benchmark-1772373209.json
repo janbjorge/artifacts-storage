@@ -1,0 +1,1 @@
+{"created_at": "2026-03-01T13:53:43.247610Z", "driver": "apg", "elapsed": "PT12.274915S", "strategy": "drain", "github_ref_name": "fix/restore-deprecated-executor-fields", "queued": 0, "rate": 4073.347962083648, "steps": 50000}

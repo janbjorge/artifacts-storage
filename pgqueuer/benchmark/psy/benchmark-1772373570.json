@@ -1,0 +1,1 @@
+{"created_at": "2026-03-01T14:00:01.802793Z", "driver": "psy", "elapsed": "PT30.157369S", "strategy": "throughput", "github_ref_name": "fix/restore-deprecated-executor-fields", "queued": 10, "rate": 2634.1820765496036, "steps": 79440}

@@ -1,0 +1,1 @@
+{"created_at": "2026-03-01T22:26:27.067944Z", "driver": "mem", "elapsed": "PT30.00121S", "strategy": "throughput", "github_ref_name": "feat/opentelemetry-tracing-adapter", "queued": 19, "rate": 9878.968301922767, "steps": 296381}

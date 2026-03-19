@@ -1,0 +1,1 @@
+{"created_at": "2026-03-19T14:03:06.833902Z", "driver": "psy", "elapsed": "PT30.425215S", "strategy": "throughput", "github_ref_name": "refactor/cleanup-psycopg-driver", "queued": 244585, "rate": 186.85159950390164, "steps": 5685}

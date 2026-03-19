@@ -1,0 +1,1 @@
+{"created_at": "2026-03-19T14:18:20.884023Z", "driver": "mem", "elapsed": "PT29.998226S", "strategy": "throughput", "github_ref_name": "chore/docker-compose-readability", "queued": 19, "rate": 10488.653504419906, "steps": 314641}

@@ -1,0 +1,1 @@
+{"created_at": "2026-03-19T14:16:28.073146Z", "driver": "apgpool", "elapsed": "PT29.04955S", "strategy": "throughput", "github_ref_name": "chore/docker-compose-readability", "queued": 19, "rate": 3253.0968574844783, "steps": 94501}

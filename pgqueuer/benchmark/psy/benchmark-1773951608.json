@@ -1,0 +1,1 @@
+{"created_at": "2026-03-19T20:20:25.289719Z", "driver": "psy", "elapsed": "PT14.904233S", "strategy": "drain", "github_ref_name": "refactor/psycopg-raw-cursor", "queued": 0, "rate": 3354.751633311154, "steps": 50000}

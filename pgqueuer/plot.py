@@ -133,21 +133,48 @@ def plot_downloads(data: PackageStats) -> None:
             totals[version] += count
 
     dates = sorted(downloads.keys())
+
+    def version_sort_key(v: str) -> tuple[int, ...]:
+        return tuple(map(int, v.split(".")))
+
     versions = sorted(
-        {v for vc in downloads.values() for v in vc}, key=lambda x: (len(x), x)
+        {v for vc in downloads.values() for v in vc}, key=version_sort_key
     )
 
-    fig = sp.make_subplots(
-        rows=2,
-        cols=2,
-        specs=[[{"type": "xy"}, {"type": "xy"}], [{"type": "xy", "colspan": 2}, None]],
+    # Stable color per version
+    palette = [
+        "rgb(31,119,180)", "rgb(255,127,14)", "rgb(44,160,44)",
+        "rgb(214,39,40)", "rgb(148,103,189)", "rgb(140,86,75)",
+        "rgb(227,119,194)", "rgb(127,127,127)", "rgb(188,189,34)",
+        "rgb(23,190,207)",
+    ]
+    version_colors = {v: palette[i % len(palette)] for i, v in enumerate(versions)}
+
+    # Daily download rate (7-day rolling average)
+    acc_dates = sorted(accumulated.keys())
+    acc_values = [accumulated[d] for d in acc_dates]
+    daily_rate = [0.0] * len(acc_values)
+    for i in range(1, len(acc_values)):
+        daily_rate[i] = float(acc_values[i] - acc_values[i - 1])
+    window = 7
+    smoothed_rate = []
+    for i in range(len(daily_rate)):
+        start = max(0, i - window + 1)
+        smoothed_rate.append(sum(daily_rate[start : i + 1]) / (i - start + 1))
+
+    fig = make_subplots(
+        rows=3,
+        cols=1,
+        vertical_spacing=0.08,
         subplot_titles=[
-            "Downloads by Version",
-            "Accumulated Downloads",
-            "Version Distribution (Bar)",
+            "Daily Downloads by Version",
+            "Daily Download Rate (7-day avg)",
+            "Total Downloads by Version",
         ],
+        row_heights=[0.45, 0.25, 0.30],
     )
 
+    # Row 1: Stacked area by version
     for version in versions:
         fig.add_trace(
             go.Scatter(
@@ -155,49 +182,56 @@ def plot_downloads(data: PackageStats) -> None:
                 y=[downloads[d][version] for d in dates],
                 mode="lines",
                 name=f"v{version}",
+                stackgroup="versions",
+                line={"color": version_colors[version], "width": 0.5},
+                hovertemplate=f"v{version}: %{{y}}<extra></extra>",
             ),
             row=1,
             col=1,
         )
 
+    # Row 2: Daily download rate
     fig.add_trace(
         go.Scatter(
-            x=list(accumulated.keys()),
-            y=list(accumulated.values()),
+            x=acc_dates,
+            y=smoothed_rate,
             mode="lines",
-            name="Accumulated",
-        ),
-        row=1,
-        col=2,
-    )
-
-    def sort_key(v: str) -> tuple[int, ...]:
-        return tuple(map(int, v.split(".")))
-
-    xy = [(x, y) for x, y in sorted(totals.items(), key=lambda i: sort_key(i[0]))]
-
-    fig.add_trace(
-        go.Bar(
-            x=[f"v{x}" for x, _ in xy],
-            y=[y for _, y in xy],
-            name="Total Downloads",
+            name="Daily rate",
+            line={"color": "rgb(31,119,180)", "width": 2},
+            fill="tozeroy",
+            fillcolor="rgba(31,119,180,0.15)",
+            showlegend=False,
+            hovertemplate="%{y:.0f} downloads/day<extra></extra>",
         ),
         row=2,
         col=1,
     )
 
-    fig.update_xaxes(title_text="Date", row=1, col=1)
-    fig.update_xaxes(title_text="Date", row=1, col=2)
-    fig.update_xaxes(title_text="Version", row=2, col=1)
+    # Row 3: Bar chart of total downloads per version
+    sorted_totals = sorted(totals.items(), key=lambda i: version_sort_key(i[0]))
+    fig.add_trace(
+        go.Bar(
+            x=[f"v{v}" for v, _ in sorted_totals],
+            y=[c for _, c in sorted_totals],
+            marker_color=[version_colors[v] for v, _ in sorted_totals],
+            showlegend=False,
+            hovertemplate="v%{x}: %{y}<extra></extra>",
+        ),
+        row=3,
+        col=1,
+    )
 
-    fig.update_yaxes(title_text="Count", row=1, col=1)
-    fig.update_yaxes(title_text="Accumulated", row=1, col=2)
-    fig.update_yaxes(title_text="Downloads", row=2, col=1)
+    fig.update_yaxes(title_text="Downloads/day", row=1, col=1)
+    fig.update_yaxes(title_text="Downloads/day (avg)", row=2, col=1)
+    fig.update_yaxes(title_text="Total downloads", row=3, col=1)
 
     fig.update_layout(
+        height=900,
+        width=1600,
         title={"text": f"Downloads Analysis: {data.id}", "x": 0.5},
         template="plotly_white",
-        margin={"l": 40, "r": 40, "t": 80, "b": 40},
+        margin={"l": 60, "r": 30, "t": 60, "b": 40},
+        legend={"orientation": "h", "y": -0.05},
     )
     fig.show()
 

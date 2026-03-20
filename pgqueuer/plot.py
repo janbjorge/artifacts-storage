@@ -7,54 +7,100 @@ from datetime import datetime
 import plotly.graph_objects as go
 import plotly.subplots as sp
 from plotly.subplots import make_subplots
-from utils import grouped_by_driver_strategy, median_filter, merged_pepy
+from utils import grouped_by_driver_strategy, rolling_percentile, merged_pepy
 from models import PackageStats
 
 
 def plot_rate_over_time():
-    data = grouped_by_driver_strategy()
-    fig = make_subplots(rows=4, cols=1)
+    groups = list(grouped_by_driver_strategy())
+    window = 21
 
-    for (driver, strategy), results in data:
-        times = [
-            x.created_at
-            for x in results
-            if x.github_ref_name == "main" and x.strategy == strategy
-        ]
-        rates = [
-            x.rate
-            for x in results
-            if x.github_ref_name == "main" and x.strategy == strategy
-        ]
+    drivers = sorted({driver for (driver, _), _ in groups})
+    strategies = sorted({strategy for (_, strategy), _ in groups})
+    driver_col = {d: i + 1 for i, d in enumerate(drivers)}
+    strategy_row = {s: i + 1 for i, s in enumerate(strategies)}
+
+    colors = {
+        "apg": "rgb(31,119,180)",
+        "apgpool": "rgb(255,127,14)",
+        "psy": "rgb(44,160,44)",
+        "mem": "rgb(214,39,40)",
+    }
+
+    fig = make_subplots(
+        rows=len(strategies),
+        cols=len(drivers),
+        column_titles=[d.upper() for d in drivers],
+        vertical_spacing=0.08,
+        horizontal_spacing=0.04,
+    )
+
+    for (driver, strategy), results in groups:
+        times = [x.created_at for x in results]
+        rates = [x.rate for x in results]
+        row = strategy_row[strategy]
+        col = driver_col[driver]
+        color = colors.get(driver, "rgb(99,110,250)")
+        r, g, b = color[4:-1].split(",")
+
+        p5 = list(rolling_percentile(rates, window, 5))
+        p50 = list(rolling_percentile(rates, window, 50))
+        p95 = list(rolling_percentile(rates, window, 95))
 
         fig.add_trace(
             go.Scatter(
                 x=times,
-                y=rates,
+                y=p95,
                 mode="lines",
-                name=f"{driver} {strategy} (Raw)",
+                line={"width": 0},
                 showlegend=False,
+                hoverinfo="skip",
             ),
-            row=1 if strategy == "throughput" else 3,
-            col=1,
+            row=row,
+            col=col,
         )
 
         fig.add_trace(
             go.Scatter(
                 x=times,
-                y=list(median_filter(rates, 21)),
+                y=p5,
                 mode="lines",
-                name=f"{driver} {strategy} (Filtered)",
+                line={"width": 0},
+                fill="tonexty",
+                fillcolor=f"rgba({r},{g},{b},0.15)",
                 showlegend=False,
+                hoverinfo="skip",
             ),
-            row=2 if strategy == "throughput" else 4,
-            col=1,
+            row=row,
+            col=col,
         )
 
+        fig.add_trace(
+            go.Scatter(
+                x=times,
+                y=p50,
+                mode="lines",
+                line={"color": color, "width": 2},
+                showlegend=False,
+                hovertemplate="%{y:.0f} jobs/s<extra></extra>",
+            ),
+            row=row,
+            col=col,
+        )
+
+    for strategy, row in strategy_row.items():
+        for col in range(1, len(drivers) + 1):
+            fig.update_yaxes(
+                title_text=f"{strategy.capitalize()} (jobs/s)",
+                row=row,
+                col=col,
+            )
     fig.update_layout(
-        height=1200,
-        title="Benchmark Rate Over Time",
+        height=900,
+        width=1600,
+        title={"text": "Benchmark Rate Over Time (P5 / P50 / P95)", "x": 0.5},
         template="plotly_white",
+        margin={"l": 50, "r": 30, "t": 60, "b": 40},
     )
 
     fig.show()

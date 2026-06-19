@@ -1,0 +1,1 @@
+{"created_at": "2026-06-19T18:45:43.403306Z", "driver": "mem", "elapsed": "PT29.997319S", "strategy": "throughput", "github_ref_name": "main", "queued": 19, "rate": 23525.46869872872, "steps": 705701}

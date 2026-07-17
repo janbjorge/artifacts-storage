@@ -5,7 +5,6 @@ from collections import Counter, defaultdict
 from datetime import datetime
 
 import plotly.graph_objects as go
-import plotly.subplots as sp
 from plotly.subplots import make_subplots
 from utils import grouped_by_driver_strategy, rolling_percentile, merged_pepy
 from models import PackageStats
@@ -117,16 +116,6 @@ def plot_downloads(data: PackageStats) -> None:
             if mv := re.match(r"^\d+\.\d+", version):
                 downloads[date][mv.group(0)] += count
 
-    accumulated = defaultdict[datetime, int](int)
-    tally = 0
-    for date in sorted(downloads.keys()):
-        tally += sum(downloads[date].values())
-        accumulated[date] = tally
-
-    adjusted_downloads_offset = data.total_downloads - max(accumulated.values())
-    for date, acc in accumulated.items():
-        accumulated[date] += adjusted_downloads_offset
-
     totals = Counter[str]()
     for vers_counts in downloads.values():
         for version, count in vers_counts.items():
@@ -151,16 +140,12 @@ def plot_downloads(data: PackageStats) -> None:
     version_colors = {v: palette[i % len(palette)] for i, v in enumerate(versions)}
 
     # Daily download rate (7-day rolling average)
-    acc_dates = sorted(accumulated.keys())
-    acc_values = [accumulated[d] for d in acc_dates]
-    daily_rate = [0.0] * len(acc_values)
-    for i in range(1, len(acc_values)):
-        daily_rate[i] = float(acc_values[i] - acc_values[i - 1])
+    daily_totals = [float(sum(downloads[d].values())) for d in dates]
     window = 7
     smoothed_rate = []
-    for i in range(len(daily_rate)):
+    for i in range(len(daily_totals)):
         start = max(0, i - window + 1)
-        smoothed_rate.append(sum(daily_rate[start : i + 1]) / (i - start + 1))
+        smoothed_rate.append(sum(daily_totals[start : i + 1]) / (i - start + 1))
 
     fig = make_subplots(
         rows=3,
@@ -193,7 +178,7 @@ def plot_downloads(data: PackageStats) -> None:
     # Row 2: Daily download rate
     fig.add_trace(
         go.Scatter(
-            x=acc_dates,
+            x=dates,
             y=smoothed_rate,
             mode="lines",
             name="Daily rate",
@@ -215,7 +200,7 @@ def plot_downloads(data: PackageStats) -> None:
             y=[c for _, c in sorted_totals],
             marker_color=[version_colors[v] for v, _ in sorted_totals],
             showlegend=False,
-            hovertemplate="v%{x}: %{y}<extra></extra>",
+            hovertemplate="%{x}: %{y}<extra></extra>",
         ),
         row=3,
         col=1,

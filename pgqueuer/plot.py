@@ -279,6 +279,24 @@ def plot_combined(data: PackageStats) -> None:
         start = max(0, i - rate_window + 1)
         smoothed_rate.append(sum(daily_totals[start : i + 1]) / (i - start + 1))
 
+    latest_version = versions[-1]
+    adoption_pct = [
+        (downloads[d].get(latest_version, 0) / total * 100) if (total := sum(downloads[d].values())) else 0.0
+        for d in dates
+    ]
+
+    # Release-date proxy: first date each version appears in the download data.
+    # Versions that first appear on the very first tracked date are dataset
+    # backfill artifacts, not real release signals, so they're excluded.
+    release_dates: dict[str, datetime] = {}
+    for version in versions:
+        for d in dates:
+            if downloads[d].get(version, 0) > 0:
+                release_dates[version] = d
+                break
+    if dates:
+        release_dates = {v: d for v, d in release_dates.items() if d != dates[0]}
+
     left_span = max(1, n_cols // 2)
     right_col = left_span + 1
     right_span = max(1, n_cols - left_span)
@@ -287,18 +305,16 @@ def plot_combined(data: PackageStats) -> None:
         "Daily Downloads by Version",
         "Daily Download Rate (7-day avg)",
         f"Total Downloads by Version (Total: {grand_total:,})",
+        f"Latest Version Adoption (v{latest_version})",
     ]
     rate_row_titles = [d.upper() for d in drivers] + [None] * n_cols * (n_rate_rows - 1)
     subplot_titles = download_row_titles + rate_row_titles
 
-    download_row1: list[dict[str, int] | None] = [None] * n_cols
-    download_row1[0] = {"colspan": left_span}
-    download_row1[right_col - 1] = {"colspan": right_span}
+    split_row: list[dict[str, int] | None] = [None] * n_cols
+    split_row[0] = {"colspan": left_span}
+    split_row[right_col - 1] = {"colspan": right_span}
 
-    specs: list[list[dict[str, int] | None]] = [
-        download_row1,
-        [{"colspan": n_cols}] + [None] * (n_cols - 1),
-    ]
+    specs: list[list[dict[str, int] | None]] = [split_row, list(split_row)]
     specs += [[{} for _ in range(n_cols)] for _ in range(n_rate_rows)]
 
     n_download_rows = 2
@@ -372,6 +388,37 @@ def plot_combined(data: PackageStats) -> None:
                 col=col,
             )
 
+    # add_vline's annotation path chokes on datetime x-values (plotly 6.5.2),
+    # so the marker line and its label are added separately via add_shape/add_annotation.
+    rate_rows = range(n_download_rows + 1, n_download_rows + n_rate_rows + 1)
+    for version, release_date in release_dates.items():
+        for row in rate_rows:
+            for col in range(1, n_cols + 1):
+                fig.add_shape(
+                    type="line",
+                    x0=release_date,
+                    x1=release_date,
+                    y0=0,
+                    y1=1,
+                    xref="x",
+                    yref="y domain",
+                    row=row,
+                    col=col,
+                    line={"color": "rgba(0,0,0,0.3)", "width": 1, "dash": "dot"},
+                )
+                if row == rate_rows[0]:
+                    fig.add_annotation(
+                        x=release_date,
+                        y=1,
+                        yref="y domain",
+                        text=f"v{version}",
+                        showarrow=False,
+                        textangle=-90,
+                        font={"size": 9},
+                        row=row,
+                        col=col,
+                    )
+
     for version in versions:
         fig.add_trace(
             go.Scatter(
@@ -416,9 +463,25 @@ def plot_combined(data: PackageStats) -> None:
         col=1,
     )
 
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=adoption_pct,
+            mode="lines",
+            line={"color": version_colors[latest_version], "width": 2},
+            fill="tozeroy",
+            fillcolor=f"rgba{version_colors[latest_version][3:-1]}, 0.15)",
+            showlegend=False,
+            hovertemplate="%{y:.1f}% on latest<extra></extra>",
+        ),
+        row=2,
+        col=right_col,
+    )
+
     fig.update_yaxes(title_text="Downloads/day", row=1, col=1)
     fig.update_yaxes(title_text="Downloads/day (avg)", row=1, col=right_col)
     fig.update_yaxes(title_text="Total downloads", row=2, col=1)
+    fig.update_yaxes(title_text="% on latest", row=2, col=right_col)
 
     fig.update_layout(
         height=320 * total_rows,

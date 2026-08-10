@@ -222,6 +222,214 @@ def plot_downloads(data: PackageStats) -> None:
     fig.show()
 
 
+def plot_combined(data: PackageStats) -> None:
+    """Create and display a single Plotly figure combining rate-over-time and downloads."""
+    groups = list(grouped_by_driver_strategy())
+    window = 21
+
+    drivers = sorted({driver for (driver, _), _ in groups})
+    strategies = sorted({strategy for (_, strategy), _ in groups})
+    driver_col = {d: i + 1 for i, d in enumerate(drivers)}
+    strategy_row = {s: i + 1 for i, s in enumerate(strategies)}
+    n_cols = len(drivers)
+    n_rate_rows = len(strategies)
+
+    colors = {
+        "apg": "rgb(31,119,180)",
+        "apgpool": "rgb(255,127,14)",
+        "psy": "rgb(44,160,44)",
+        "mem": "rgb(214,39,40)",
+    }
+
+    downloads: defaultdict[datetime, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    for date, vers_counts in data.downloads.items():
+        for version, count in vers_counts.items():
+            if mv := re.match(r"^\d+\.\d+", version):
+                downloads[date][mv.group(0)] += count
+
+    totals = Counter[str]()
+    for vers_counts in downloads.values():
+        for version, count in vers_counts.items():
+            totals[version] += count
+
+    grand_total = sum(totals.values())
+    dates = sorted(downloads.keys())
+
+    def version_sort_key(v: str) -> tuple[int, ...]:
+        return tuple(map(int, v.split(".")))
+
+    versions = sorted(
+        {v for vc in downloads.values() for v in vc}, key=version_sort_key
+    )
+
+    palette = [
+        "rgb(31,119,180)", "rgb(255,127,14)", "rgb(44,160,44)",
+        "rgb(214,39,40)", "rgb(148,103,189)", "rgb(140,86,75)",
+        "rgb(227,119,194)", "rgb(127,127,127)", "rgb(188,189,34)",
+        "rgb(23,190,207)",
+    ]
+    version_colors = {v: palette[i % len(palette)] for i, v in enumerate(versions)}
+
+    daily_totals = [float(sum(downloads[d].values())) for d in dates]
+    rate_window = 7
+    smoothed_rate = []
+    for i in range(len(daily_totals)):
+        start = max(0, i - rate_window + 1)
+        smoothed_rate.append(sum(daily_totals[start : i + 1]) / (i - start + 1))
+
+    left_span = max(1, n_cols // 2)
+    right_col = left_span + 1
+    right_span = max(1, n_cols - left_span)
+
+    download_row_titles = [
+        "Daily Downloads by Version",
+        "Daily Download Rate (7-day avg)",
+        f"Total Downloads by Version (Total: {grand_total:,})",
+    ]
+    rate_row_titles = [d.upper() for d in drivers] + [None] * n_cols * (n_rate_rows - 1)
+    subplot_titles = download_row_titles + rate_row_titles
+
+    download_row1: list[dict[str, int] | None] = [None] * n_cols
+    download_row1[0] = {"colspan": left_span}
+    download_row1[right_col - 1] = {"colspan": right_span}
+
+    specs: list[list[dict[str, int] | None]] = [
+        download_row1,
+        [{"colspan": n_cols}] + [None] * (n_cols - 1),
+    ]
+    specs += [[{} for _ in range(n_cols)] for _ in range(n_rate_rows)]
+
+    n_download_rows = 2
+    total_rows = n_download_rows + n_rate_rows
+    fig = make_subplots(
+        rows=total_rows,
+        cols=n_cols,
+        subplot_titles=subplot_titles,
+        specs=specs,
+        vertical_spacing=0.05,
+        horizontal_spacing=0.04,
+        row_heights=[1.2, 1.0] + [1.0] * n_rate_rows,
+    )
+
+    for (driver, strategy), results in groups:
+        times = [x.created_at for x in results]
+        rates = [x.rate for x in results]
+        row = strategy_row[strategy] + n_download_rows
+        col = driver_col[driver]
+        color = colors.get(driver, "rgb(99,110,250)")
+        r, g, b = color[4:-1].split(",")
+
+        p5 = list(rolling_percentile(rates, window, 5))
+        p50 = list(rolling_percentile(rates, window, 50))
+        p95 = list(rolling_percentile(rates, window, 95))
+
+        fig.add_trace(
+            go.Scatter(
+                x=times,
+                y=p95,
+                mode="lines",
+                line={"width": 0},
+                showlegend=False,
+                hoverinfo="skip",
+            ),
+            row=row,
+            col=col,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=times,
+                y=p5,
+                mode="lines",
+                line={"width": 0},
+                fill="tonexty",
+                fillcolor=f"rgba({r},{g},{b},0.15)",
+                showlegend=False,
+                hoverinfo="skip",
+            ),
+            row=row,
+            col=col,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=times,
+                y=p50,
+                mode="lines",
+                line={"color": color, "width": 2},
+                showlegend=False,
+                hovertemplate="%{y:.0f} jobs/s<extra></extra>",
+            ),
+            row=row,
+            col=col,
+        )
+
+    for strategy, row in strategy_row.items():
+        for col in range(1, n_cols + 1):
+            fig.update_yaxes(
+                title_text=f"{strategy.capitalize()} (jobs/s)",
+                row=row + n_download_rows,
+                col=col,
+            )
+
+    for version in versions:
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=[downloads[d][version] for d in dates],
+                mode="lines",
+                name=f"v{version}",
+                stackgroup="versions",
+                line={"color": version_colors[version], "width": 0.5},
+                hovertemplate=f"v{version}: %{{y}}<extra></extra>",
+            ),
+            row=1,
+            col=1,
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=smoothed_rate,
+            mode="lines",
+            name="Daily rate",
+            line={"color": "rgb(31,119,180)", "width": 2},
+            fill="tozeroy",
+            fillcolor="rgba(31,119,180,0.15)",
+            showlegend=False,
+            hovertemplate="%{y:.0f} downloads/day<extra></extra>",
+        ),
+        row=1,
+        col=right_col,
+    )
+
+    sorted_totals = sorted(totals.items(), key=lambda i: version_sort_key(i[0]))
+    fig.add_trace(
+        go.Bar(
+            x=[f"v{v}" for v, _ in sorted_totals],
+            y=[c for _, c in sorted_totals],
+            marker_color=[version_colors[v] for v, _ in sorted_totals],
+            showlegend=False,
+            hovertemplate="%{x}: %{y}<extra></extra>",
+        ),
+        row=2,
+        col=1,
+    )
+
+    fig.update_yaxes(title_text="Downloads/day", row=1, col=1)
+    fig.update_yaxes(title_text="Downloads/day (avg)", row=1, col=right_col)
+    fig.update_yaxes(title_text="Total downloads", row=2, col=1)
+
+    fig.update_layout(
+        height=320 * total_rows,
+        width=1600,
+        title={"text": f"Benchmarks & Downloads: {data.id}", "x": 0.5},
+        template="plotly_white",
+        margin={"l": 60, "r": 30, "t": 60, "b": 40},
+        legend={"orientation": "h", "y": -0.02},
+    )
+    fig.show()
+
+
 if __name__ == "__main__":
-    plot_rate_over_time()
-    plot_downloads(merged_pepy())
+    plot_combined(merged_pepy())

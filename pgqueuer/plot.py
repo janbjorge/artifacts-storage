@@ -121,6 +121,7 @@ def plot_downloads(data: PackageStats) -> None:
         for version, count in vers_counts.items():
             totals[version] += count
 
+    grand_total = sum(totals.values())
     dates = sorted(downloads.keys())
 
     def version_sort_key(v: str) -> tuple[int, ...]:
@@ -154,7 +155,7 @@ def plot_downloads(data: PackageStats) -> None:
         subplot_titles=[
             "Daily Downloads by Version",
             "Daily Download Rate (7-day avg)",
-            "Total Downloads by Version",
+            f"Total Downloads by Version (Total: {grand_total:,})",
         ],
         row_heights=[0.45, 0.25, 0.30],
     )

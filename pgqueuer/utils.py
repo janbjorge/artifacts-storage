@@ -1,44 +1,58 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Generator
+from concurrent.futures import ThreadPoolExecutor
 from itertools import groupby
 from datetime import datetime
 from pathlib import Path
-from typing import Generator
 from statistics import median
 from collections import defaultdict
 
 from models import BenchmarkResult, PackageStats
 
+_READ_WORKERS = 8
+
+
+def _load_json_files[T](
+    root: Path, parse: Callable[[bytes], T]
+) -> list[tuple[Path, T]]:
+    files = list(root.rglob("*.json"))
+    if not files:
+        return []
+
+    n_workers = min(_READ_WORKERS, len(files))
+    chunksize = max(1, len(files) // (n_workers * 8))
+
+    def load(path: Path) -> tuple[Path, T]:
+        return path, parse(path.read_bytes())
+
+    with ThreadPoolExecutor(max_workers=n_workers) as pool:
+        return list(pool.map(load, files, chunksize=chunksize))
+
 
 def benchmark_loader() -> Generator[tuple[Path, BenchmarkResult], None, None]:
-    for file in Path("pgqueuer/benchmark").rglob("*.json"):
-        with file.open() as f:
-            yield (
-                file,
-                BenchmarkResult.model_validate_json(f.read()),
-            )
+    yield from _load_json_files(
+        Path("pgqueuer/benchmark"), BenchmarkResult.model_validate_json
+    )
 
 
 def pepy_loader() -> Generator[tuple[Path, PackageStats], None, None]:
-    for file in Path("pgqueuer/pepy").rglob("*.json"):
-        with file.open() as f:
-            yield (
-                file,
-                PackageStats.model_validate_json(f.read()),
-            )
+    yield from _load_json_files(Path("pgqueuer/pepy"), PackageStats.model_validate_json)
 
 
 def merged_pepy() -> PackageStats:
     downloads = defaultdict[datetime, dict[str, list[int]]](
         lambda: defaultdict[str, list[int]](list)
     )
+    total_downloads = 0
     for _, ps in pepy_loader():
+        total_downloads = max(total_downloads, ps.total_downloads)
         for when, v_dl in ps.downloads.items():
             for v, dl in v_dl.items():
                 downloads[when][v].append(dl)
 
     return PackageStats(
-        total_downloads=max(x.total_downloads for _, x in pepy_loader()),
+        total_downloads=total_downloads,
         id="pgqueuer",
         versions=list(set(v for x in downloads.values() for v in x.keys())),
         downloads={

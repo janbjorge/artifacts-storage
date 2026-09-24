@@ -5,6 +5,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from itertools import accumulate
 
+from concurrent.futures import ThreadPoolExecutor
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from utils import grouped_by_driver_strategy, rolling_percentile, merged_pepy
@@ -228,9 +230,12 @@ def plot_downloads(data: PackageStats) -> None:
     fig.show()
 
 
-def plot_combined(data: PackageStats) -> None:
+def plot_combined() -> None:
     """Create and display a single Plotly figure combining rate-over-time and downloads."""
-    groups = list(grouped_by_driver_strategy())
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        pepy_job = pool.submit(merged_pepy)
+        groups_job = pool.submit(lambda: list(grouped_by_driver_strategy()))
+        data, groups = pepy_job.result(), groups_job.result()
     window = 21
 
     drivers = sorted({driver for (driver, _), _ in groups})
@@ -554,4 +559,4 @@ def plot_combined(data: PackageStats) -> None:
 
 
 if __name__ == "__main__":
-    plot_combined(merged_pepy())
+    plot_combined()

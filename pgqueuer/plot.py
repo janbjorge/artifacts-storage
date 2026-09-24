@@ -3,11 +3,21 @@ from __future__ import annotations
 import re
 from collections import Counter, defaultdict
 from datetime import datetime
+from itertools import accumulate
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from utils import grouped_by_driver_strategy, rolling_percentile, merged_pepy
 from models import PackageStats
+
+
+def trailing_mean(values: list[float], window: int) -> list[float]:
+    """Trailing moving average, shrinking the window at the start of the series."""
+    out = []
+    for i in range(len(values)):
+        start = max(0, i - window + 1)
+        out.append(sum(values[start : i + 1]) / (i - start + 1))
+    return out
 
 
 def plot_rate_over_time():
@@ -142,11 +152,7 @@ def plot_downloads(data: PackageStats) -> None:
 
     # Daily download rate (7-day rolling average)
     daily_totals = [float(sum(downloads[d].values())) for d in dates]
-    window = 7
-    smoothed_rate = []
-    for i in range(len(daily_totals)):
-        start = max(0, i - window + 1)
-        smoothed_rate.append(sum(daily_totals[start : i + 1]) / (i - start + 1))
+    smoothed_rate = trailing_mean(daily_totals, 7)
 
     fig = make_subplots(
         rows=3,
@@ -274,16 +280,37 @@ def plot_combined(data: PackageStats) -> None:
 
     daily_totals = [float(sum(downloads[d].values())) for d in dates]
     rate_window = 7
-    smoothed_rate = []
-    for i in range(len(daily_totals)):
-        start = max(0, i - rate_window + 1)
-        smoothed_rate.append(sum(daily_totals[start : i + 1]) / (i - start + 1))
+    smoothed_rate = trailing_mean(daily_totals, rate_window)
 
-    latest_version = versions[-1]
-    adoption_pct = [
-        (downloads[d].get(latest_version, 0) / total * 100) if (total := sum(downloads[d].values())) else 0.0
-        for d in dates
-    ]
+    cumulative_total = list(accumulate(daily_totals))
+
+    # Adoption: share of daily downloads per version, smoothed. Versions are picked
+    # by recent traffic rather than all-time totals, otherwise long-dead versions
+    # crowd out the current ones. "Other" carries the remaining versions so the
+    # plotted lines sum to 100% on every day.
+    n_adoption_versions = 5
+    adoption_window = 90
+    recent_totals = Counter[str]()
+    for d in dates[-adoption_window:]:
+        for version, count in downloads[d].items():
+            recent_totals[version] += count
+    adoption_versions = sorted(
+        (v for v, _ in recent_totals.most_common(n_adoption_versions)),
+        key=version_sort_key,
+    )
+
+    def smoothed_share(picked: tuple[str, ...]) -> list[float]:
+        return trailing_mean(
+            [
+                sum(downloads[d].get(v, 0) for v in picked) / total * 100 if total else 0.0
+                for d, total in zip(dates, daily_totals)
+            ],
+            rate_window,
+        )
+
+    adoption_pct = {version: smoothed_share((version,)) for version in adoption_versions}
+    other_versions = tuple(v for v in versions if v not in adoption_versions)
+    adoption_other = smoothed_share(other_versions)
 
     # Release-date proxy: first date each version appears in the download data.
     # Versions that first appear on the very first tracked date are dataset
@@ -302,10 +329,11 @@ def plot_combined(data: PackageStats) -> None:
     right_span = max(1, n_cols - left_span)
 
     download_row_titles = [
-        "Daily Downloads by Version",
         "Daily Download Rate (7-day avg)",
-        f"Total Downloads by Version (Total: {grand_total:,})",
-        f"Latest Version Adoption (v{latest_version})",
+        f"Cumulative Downloads (Total: {grand_total:,})",
+        "Daily Downloads by Version",
+        f"Version Adoption, Top {len(adoption_versions)} by Recent Traffic (7-day avg share)",
+        "Total Downloads by Version",
     ]
     rate_row_titles = [d.upper() for d in drivers] + [None] * n_cols * (n_rate_rows - 1)
     subplot_titles = download_row_titles + rate_row_titles
@@ -314,10 +342,13 @@ def plot_combined(data: PackageStats) -> None:
     split_row[0] = {"colspan": left_span}
     split_row[right_col - 1] = {"colspan": right_span}
 
-    specs: list[list[dict[str, int] | None]] = [split_row, list(split_row)]
+    full_row: list[dict[str, int] | None] = [None] * n_cols
+    full_row[0] = {"colspan": n_cols}
+
+    specs: list[list[dict[str, int] | None]] = [split_row, list(split_row), full_row]
     specs += [[{} for _ in range(n_cols)] for _ in range(n_rate_rows)]
 
-    n_download_rows = 2
+    n_download_rows = 3
     total_rows = n_download_rows + n_rate_rows
     fig = make_subplots(
         rows=total_rows,
@@ -326,7 +357,7 @@ def plot_combined(data: PackageStats) -> None:
         specs=specs,
         vertical_spacing=0.05,
         horizontal_spacing=0.04,
-        row_heights=[1.2, 1.0] + [1.0] * n_rate_rows,
+        row_heights=[1.0, 1.2, 0.8] + [1.0] * n_rate_rows,
     )
 
     for (driver, strategy), results in groups:
@@ -430,7 +461,7 @@ def plot_combined(data: PackageStats) -> None:
                 line={"color": version_colors[version], "width": 0.5},
                 hovertemplate=f"v{version}: %{{y}}<extra></extra>",
             ),
-            row=1,
+            row=2,
             col=1,
         )
 
@@ -447,6 +478,48 @@ def plot_combined(data: PackageStats) -> None:
             hovertemplate="%{y:.0f} downloads/day<extra></extra>",
         ),
         row=1,
+        col=1,
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=cumulative_total,
+            mode="lines",
+            line={"color": "rgb(44,160,44)", "width": 2},
+            fill="tozeroy",
+            fillcolor="rgba(44,160,44,0.15)",
+            showlegend=False,
+            hovertemplate="%{y:,.0f} downloads total<extra></extra>",
+        ),
+        row=1,
+        col=right_col,
+    )
+
+    for version, share in adoption_pct.items():
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=share,
+                mode="lines",
+                line={"color": version_colors[version], "width": 2},
+                showlegend=False,
+                hovertemplate=f"v{version}: %{{y:.1f}}%<extra></extra>",
+            ),
+            row=2,
+            col=right_col,
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=adoption_other,
+            mode="lines",
+            name=f"Other ({len(other_versions)} versions)",
+            line={"color": "rgb(150,150,150)", "width": 1.5, "dash": "dot"},
+            hovertemplate="Other: %{y:.1f}%<extra></extra>",
+        ),
+        row=2,
         col=right_col,
     )
 
@@ -459,29 +532,15 @@ def plot_combined(data: PackageStats) -> None:
             showlegend=False,
             hovertemplate="%{x}: %{y}<extra></extra>",
         ),
-        row=2,
+        row=3,
         col=1,
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=dates,
-            y=adoption_pct,
-            mode="lines",
-            line={"color": version_colors[latest_version], "width": 2},
-            fill="tozeroy",
-            fillcolor=f"rgba{version_colors[latest_version][3:-1]}, 0.15)",
-            showlegend=False,
-            hovertemplate="%{y:.1f}% on latest<extra></extra>",
-        ),
-        row=2,
-        col=right_col,
-    )
-
-    fig.update_yaxes(title_text="Downloads/day", row=1, col=1)
-    fig.update_yaxes(title_text="Downloads/day (avg)", row=1, col=right_col)
-    fig.update_yaxes(title_text="Total downloads", row=2, col=1)
-    fig.update_yaxes(title_text="% on latest", row=2, col=right_col)
+    fig.update_yaxes(title_text="Downloads/day (avg)", row=1, col=1)
+    fig.update_yaxes(title_text="Cumulative downloads", row=1, col=right_col)
+    fig.update_yaxes(title_text="Downloads/day", row=2, col=1)
+    fig.update_yaxes(title_text="% of daily downloads", row=2, col=right_col)
+    fig.update_yaxes(title_text="Total downloads", row=3, col=1)
 
     fig.update_layout(
         height=320 * total_rows,

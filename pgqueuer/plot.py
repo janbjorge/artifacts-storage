@@ -5,11 +5,9 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from itertools import accumulate
 
-from concurrent.futures import ThreadPoolExecutor
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from utils import grouped_by_driver_strategy, rolling_percentile, merged_pepy
+from utils import grouped_by_driver_strategy, rolling_percentile, plot_inputs
 from models import PackageStats
 
 
@@ -232,10 +230,7 @@ def plot_downloads(data: PackageStats) -> None:
 
 def plot_combined() -> None:
     """Create and display a single Plotly figure combining rate-over-time and downloads."""
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        pepy_job = pool.submit(merged_pepy)
-        groups_job = pool.submit(lambda: list(grouped_by_driver_strategy()))
-        data, groups = pepy_job.result(), groups_job.result()
+    data, groups = plot_inputs()
     window = 21
 
     drivers = sorted({driver for (driver, _), _ in groups})
@@ -424,36 +419,48 @@ def plot_combined() -> None:
                 col=col,
             )
 
-    # add_vline's annotation path chokes on datetime x-values (plotly 6.5.2),
-    # so the marker line and its label are added separately via add_shape/add_annotation.
+    # add_vline's annotation path chokes on datetime x-values (plotly 6.5.2), and
+    # add_shape/add_annotation revalidate the whole layout array on every call, which
+    # is quadratic in the number of markers. Build them once, assign them once.
     rate_rows = range(n_download_rows + 1, n_download_rows + n_rate_rows + 1)
-    for version, release_date in release_dates.items():
-        for row in rate_rows:
-            for col in range(1, n_cols + 1):
-                fig.add_shape(
-                    type="line",
-                    x0=release_date,
-                    x1=release_date,
-                    y0=0,
-                    y1=1,
-                    xref="x",
-                    yref="y domain",
-                    row=row,
-                    col=col,
-                    line={"color": "rgba(0,0,0,0.3)", "width": 1, "dash": "dot"},
+    release_shapes = []
+    release_labels = []
+    for row in rate_rows:
+        for col in range(1, n_cols + 1):
+            subplot = fig.get_subplot(row, col)
+            xref = subplot.xaxis.plotly_name.replace("axis", "")
+            yref = subplot.yaxis.plotly_name.replace("axis", "")
+            for version, release_date in release_dates.items():
+                release_shapes.append(
+                    {
+                        "type": "line",
+                        "x0": release_date,
+                        "x1": release_date,
+                        "y0": 0,
+                        "y1": 1,
+                        "xref": xref,
+                        "yref": f"{yref} domain",
+                        "line": {"color": "rgba(0,0,0,0.3)", "width": 1, "dash": "dot"},
+                    }
                 )
                 if row == rate_rows[0]:
-                    fig.add_annotation(
-                        x=release_date,
-                        y=1,
-                        yref="y domain",
-                        text=f"v{version}",
-                        showarrow=False,
-                        textangle=-90,
-                        font={"size": 9},
-                        row=row,
-                        col=col,
+                    release_labels.append(
+                        {
+                            "x": release_date,
+                            "y": 1,
+                            "xref": xref,
+                            "yref": f"{yref} domain",
+                            "text": f"v{version}",
+                            "showarrow": False,
+                            "textangle": -90,
+                            "font": {"size": 9},
+                        }
                     )
+
+    fig.update_layout(
+        shapes=release_shapes,
+        annotations=list(fig.layout.annotations) + release_labels,
+    )
 
     for version in versions:
         fig.add_trace(

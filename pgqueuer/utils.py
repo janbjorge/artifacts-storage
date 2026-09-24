@@ -10,24 +10,20 @@ from collections import defaultdict
 
 from models import BenchmarkResult, PackageStats
 
-_READ_WORKERS = 8
+
+def _parse_file[T](item: tuple[Callable[[bytes], T], Path]) -> tuple[Path, T]:
+    parse, path = item
+    return path, parse(path.read_bytes())
 
 
 def _load_json_files[T](
     root: Path, parse: Callable[[bytes], T]
 ) -> list[tuple[Path, T]]:
-    files = list(root.rglob("*.json"))
+    files = [(parse, path) for path in root.rglob("*.json")]
     if not files:
         return []
-
-    n_workers = min(_READ_WORKERS, len(files))
-    chunksize = max(1, len(files) // (n_workers * 8))
-
-    def load(path: Path) -> tuple[Path, T]:
-        return path, parse(path.read_bytes())
-
-    with ThreadPoolExecutor(max_workers=n_workers) as pool:
-        return list(pool.map(load, files, chunksize=chunksize))
+    with ThreadPoolExecutor() as pool:
+        return list(pool.map(_parse_file, files))
 
 
 def benchmark_loader() -> Generator[tuple[Path, BenchmarkResult], None, None]:
@@ -40,12 +36,12 @@ def pepy_loader() -> Generator[tuple[Path, PackageStats], None, None]:
     yield from _load_json_files(Path("pgqueuer/pepy"), PackageStats.model_validate_json)
 
 
-def merged_pepy() -> PackageStats:
+def _merge_pepy(stats: list[PackageStats]) -> PackageStats:
     downloads = defaultdict[datetime, dict[str, list[int]]](
         lambda: defaultdict[str, list[int]](list)
     )
     total_downloads = 0
-    for _, ps in pepy_loader():
+    for ps in stats:
         total_downloads = max(total_downloads, ps.total_downloads)
         for when, v_dl in ps.downloads.items():
             for v, dl in v_dl.items():
@@ -62,7 +58,12 @@ def merged_pepy() -> PackageStats:
     )
 
 
-def grouped_by_driver_strategy(
+def merged_pepy() -> PackageStats:
+    return _merge_pepy([ps for _, ps in pepy_loader()])
+
+
+def _grouped_by_driver_strategy(
+    results: list[BenchmarkResult],
     github_ref_name: str = "main",
 ) -> Generator[
     tuple[tuple[str, str], list[BenchmarkResult]],
@@ -71,7 +72,7 @@ def grouped_by_driver_strategy(
 ]:
     for driver_strategy, group in groupby(
         sorted(
-            [x for _, x in benchmark_loader() if x.github_ref_name == github_ref_name],
+            [x for x in results if x.github_ref_name == github_ref_name],
             key=lambda x: (x.driver, x.strategy),
         ),
         key=lambda x: (x.driver, x.strategy),
@@ -80,6 +81,39 @@ def grouped_by_driver_strategy(
             driver_strategy,
             sorted(group, key=lambda x: x.created_at),
         )
+
+
+def grouped_by_driver_strategy(
+    github_ref_name: str = "main",
+) -> Generator[
+    tuple[tuple[str, str], list[BenchmarkResult]],
+    None,
+    None,
+]:
+    yield from _grouped_by_driver_strategy(
+        [x for _, x in benchmark_loader()],
+        github_ref_name,
+    )
+
+
+def plot_inputs() -> tuple[
+    PackageStats,
+    list[tuple[tuple[str, str], list[BenchmarkResult]]],
+]:
+    """Load pepy and benchmark JSON in one default thread pool, then merge/group."""
+    jobs: list[tuple[Callable[[bytes], object], Path]] = [
+        (BenchmarkResult.model_validate_json, path)
+        for path in Path("pgqueuer/benchmark").rglob("*.json")
+    ]
+    jobs.extend(
+        (PackageStats.model_validate_json, path)
+        for path in Path("pgqueuer/pepy").rglob("*.json")
+    )
+    with ThreadPoolExecutor() as pool:
+        loaded = list(pool.map(_parse_file, jobs))
+    pepy = [model for _, model in loaded if isinstance(model, PackageStats)]
+    bench = [model for _, model in loaded if isinstance(model, BenchmarkResult)]
+    return _merge_pepy(pepy), list(_grouped_by_driver_strategy(bench))
 
 
 def median_filter(data: list[float], window_size: int) -> Generator[float, None, None]:

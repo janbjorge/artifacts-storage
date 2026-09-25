@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from utils import benchmark_loader
+from concurrent.futures import ThreadPoolExecutor
+
+from queries import BenchmarkQueries
 
 
 def main() -> None:
-    for file, data in benchmark_loader():
+    with ThreadPoolExecutor() as pool:
+        loaded = BenchmarkQueries(pool).load()
+    for file, data in loaded:
         if data.github_ref_name != "main":
             file.unlink()
             print(file)

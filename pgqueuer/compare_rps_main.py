@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 import statistics
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from itertools import groupby
 
-from utils import benchmark_loader
+from queries import BenchmarkQueries
 
 # ANSI color codes for terminal output
 RED = "\033[91m"
@@ -35,8 +36,10 @@ def compare_with_main() -> None:
     branch_name = os.getenv("REF_NAME", "main")
     exit_status = 0
 
+    with ThreadPoolExecutor() as pool:
+        loaded = BenchmarkQueries(pool).load()
     all_results = sorted(
-        (x for _, x in benchmark_loader()),
+        (x for _, x in loaded),
         key=lambda x: (x.driver, x.strategy),
     )
 

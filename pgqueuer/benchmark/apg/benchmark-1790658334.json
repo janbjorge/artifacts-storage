@@ -1,1 +1,1 @@
-{"created_at": "2026-09-29T05:05:44.510574Z", "driver": "apg", "elapsed": "PT8.843369S", "strategy": "drain", "github_ref_name": "main", "queued": 0, "rate": 5653.953826872994, "steps": 50000}
+{"created_at": "2026-09-29T05:06:06.378038Z", "driver": "apg", "elapsed": "PT30.801986S", "strategy": "throughput", "github_ref_name": "main", "queued": 11150, "rate": 4502.95640333714, "steps": 138700}

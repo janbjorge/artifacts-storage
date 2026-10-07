@@ -2,14 +2,66 @@ from __future__ import annotations
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from service import PlotService, version_sort_key
+from service import PlotService, trailing_mean
 from utils import rolling_percentile
 
 
 def plot_combined() -> None:
-    plot = PlotService().build_plot_data()
+    service = PlotService()
+    plot = service.build_plot_data()
     downloads = plot.downloads
     window = 21
+
+    version_members: dict[str, list[str]] = {}
+    for version in downloads.versions:
+        group = "0.x" if version.startswith("0.") else version
+        version_members.setdefault(group, []).append(version)
+    versions = tuple(version_members)
+    daily_by_version = {
+        date: {
+            group: sum(downloads.daily[date].get(version, 0) for version in members)
+            for group, members in version_members.items()
+        }
+        for date in downloads.dates
+    }
+    totals_by_version = {
+        group: sum(downloads.totals.get(version, 0) for version in members)
+        for group, members in version_members.items()
+    }
+
+    recent_dates = downloads.dates[-service.adoption_window :]
+    recent_totals = {
+        version: sum(daily_by_version[date][version] for date in recent_dates)
+        for version in versions
+    }
+    adoption_candidates = set(
+        sorted(versions, key=recent_totals.get, reverse=True)[
+            : service.n_adoption_versions
+        ]
+    )
+    adoption_versions = tuple(v for v in versions if v in adoption_candidates)
+    other_versions = tuple(v for v in versions if v not in adoption_candidates)
+    daily_totals = [sum(daily_by_version[date].values()) for date in downloads.dates]
+
+    def adoption_share(selected: tuple[str, ...]) -> tuple[float, ...]:
+        return tuple(
+            trailing_mean(
+                [
+                    sum(daily_by_version[date][version] for version in selected)
+                    / total
+                    * 100
+                    if total
+                    else 0.0
+                    for date, total in zip(downloads.dates, daily_totals)
+                ],
+                service.rate_window,
+            )
+        )
+
+    adoption_pct = {
+        version: adoption_share((version,)) for version in adoption_versions
+    }
+    adoption_other = adoption_share(other_versions)
 
     drivers = sorted({g.driver for g in plot.groups})
     strategies = sorted({g.strategy for g in plot.groups})
@@ -37,9 +89,7 @@ def plot_combined() -> None:
         "rgb(188,189,34)",
         "rgb(23,190,207)",
     ]
-    version_colors = {
-        v: palette[i % len(palette)] for i, v in enumerate(downloads.versions)
-    }
+    version_colors = {v: palette[i % len(palette)] for i, v in enumerate(versions)}
 
     left_span = max(1, n_cols // 2)
     right_col = left_span + 1
@@ -50,7 +100,7 @@ def plot_combined() -> None:
         f"Cumulative Downloads (Total: {downloads.grand_total:,})",
         "Daily Downloads by Version",
         (
-            f"Version Adoption, Top {len(downloads.adoption_versions)} "
+            f"Version Adoption, Top {len(adoption_versions)} "
             "by Recent Traffic (7-day avg share)"
         ),
         "Total Downloads by Version",
@@ -151,6 +201,8 @@ def plot_combined() -> None:
             xref = subplot.xaxis.plotly_name.replace("axis", "")
             yref = subplot.yaxis.plotly_name.replace("axis", "")
             for version, release_date in downloads.release_dates.items():
+                if version.startswith("0."):
+                    continue
                 release_shapes.append(
                     {
                         "type": "line",
@@ -177,11 +229,11 @@ def plot_combined() -> None:
                         }
                     )
 
-    for version in downloads.versions:
+    for version in versions:
         fig.add_trace(
             go.Scatter(
                 x=downloads.dates,
-                y=[downloads.daily[d].get(version, 0) for d in downloads.dates],
+                y=[daily_by_version[d][version] for d in downloads.dates],
                 mode="lines",
                 name=f"v{version}",
                 stackgroup="versions",
@@ -223,7 +275,7 @@ def plot_combined() -> None:
         col=right_col,
     )
 
-    for version, share in downloads.adoption_pct.items():
+    for version, share in adoption_pct.items():
         fig.add_trace(
             go.Scatter(
                 x=downloads.dates,
@@ -240,9 +292,9 @@ def plot_combined() -> None:
     fig.add_trace(
         go.Scatter(
             x=downloads.dates,
-            y=list(downloads.adoption_other),
+            y=list(adoption_other),
             mode="lines",
-            name=f"Other ({len(downloads.other_versions)} versions)",
+            name=f"Other ({len(other_versions)} versions)",
             line={"color": "rgb(150,150,150)", "width": 1.5, "dash": "dot"},
             hovertemplate="Other: %{y:.1f}%<extra></extra>",
         ),
@@ -250,9 +302,7 @@ def plot_combined() -> None:
         col=right_col,
     )
 
-    sorted_totals = sorted(
-        downloads.totals.items(), key=lambda i: version_sort_key(i[0])
-    )
+    sorted_totals = [(version, totals_by_version[version]) for version in versions]
     fig.add_trace(
         go.Bar(
             x=[f"v{v}" for v, _ in sorted_totals],

@@ -1,1 +1,1 @@
-{"created_at":"2026-11-11T05:29:28.613211Z","driver":"mem","elapsed":"PT1.161844S","strategy":"drain","github_ref_name":"main","queued":0,"rate":43035.03740605451,"steps":50000}
+{"created_at":"2026-11-11T05:29:56.673968Z","driver":"mem","elapsed":"PT30.021232S","strategy":"throughput","github_ref_name":"main","queued":10,"rate":19463.224989085174,"steps":584310}
